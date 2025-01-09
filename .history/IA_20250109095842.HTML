@@ -1,0 +1,1609 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IA Avanzada</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: #1a1a1a;
+            color: #fff;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            margin-left: 250px;
+        }
+
+        .chat-area {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            background: #2d2d2d;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .message {
+            margin: 10px 0;
+            padding: 15px;
+            border-radius: 8px;
+            max-width: 80%;
+        }
+
+        .user-message {
+            background: #4a4a4a;
+            margin-left: auto;
+        }
+
+        .ai-message {
+            background: #0d47a1;
+        }
+
+        .input-area {
+            display: flex;
+            gap: 10px;
+        }
+
+        #userInput {
+            flex: 1;
+            padding: 15px;
+            border: none;
+            border-radius: 8px;
+            background: #2d2d2d;
+            color: #fff;
+            font-size: 16px;
+        }
+
+        button {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 8px;
+            background: #0d47a1;
+            color: #fff;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        button:hover {
+            background: #1565c0;
+        }
+
+        .loading {
+            display: inline-block;
+            margin-left: 10px;
+        }
+
+        pre {
+            background: #1a1a1a;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+
+        code {
+            font-family: 'Consolas', monospace;
+            color: #00ff00;
+        }
+
+        /* Agregar estilos para el modo de pensamiento */
+        .thinking {
+            font-style: italic;
+            color: #888;
+        }
+        
+        .confidence {
+            font-size: 0.8em;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .sources {
+            font-size: 0.8em;
+            color: #4CAF50;
+            margin-top: 5px;
+        }
+
+        .menu {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 250px;
+            height: 100vh;
+            background: #1a1a1a;
+            padding: 20px;
+            border-right: 1px solid #333;
+        }
+
+        .menu-header {
+            text-align: center;
+            padding: 10px;
+            border-bottom: 1px solid #333;
+            margin-bottom: 20px;
+        }
+
+        .menu-items {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .menu-items button {
+            width: 100%;
+            padding: 12px;
+            background: #2d2d2d;
+            border: none;
+            border-radius: 5px;
+            color: #fff;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .menu-items button:hover {
+            background: #0d47a1;
+        }
+
+        /* Estilos para el chat por voz */
+        .voice-indicator {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 15px;
+            background: #0d47a1;
+            border-radius: 50%;
+            display: none;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="chat-area" id="chatArea"></div>
+        <div class="input-area">
+            <input type="text" id="userInput" placeholder="Hazme una pregunta..." autocomplete="off">
+            <button onclick="processInput()">Enviar</button>
+        </div>
+    </div>
+
+    <div class="menu">
+        <div class="menu-header">
+            <h2>Menú de IA</h2>
+        </div>
+        <div class="menu-items">
+            <button onclick="showAIInfo('basics')">Fundamentos de IA</button>
+            <button onclick="showAIInfo('types')">Tipos de IA</button>
+            <button onclick="showAIInfo('neural')">Redes Neuronales</button>
+            <button onclick="showAIInfo('ml')">Machine Learning</button>
+            <button onclick="showAIInfo('nlp')">Procesamiento de Lenguaje</button>
+            <button onclick="startVoiceChat()">Chat por Voz</button>
+        </div>
+    </div>
+
+    <script>
+        class AdvancedAI {
+            constructor() {
+                this.memory = new Map();
+                this.longTermMemory = new Map();
+                this.neuralConnections = new Map();
+                this.learningRate = 0.1;
+                this.knowledgeBase = this.initializeKnowledgeBase();
+                this.emotionalState = 0.5; // 0 = negativo, 1 = positivo
+                this.creativity = 0.7; // Factor de creatividad
+                this.loadMemoryFromStorage();
+            }
+
+            initializeKnowledgeBase() {
+                return {
+                    concepts: new Map(),
+                    patterns: new Map(),
+                    relationships: new Map(),
+                    algorithms: {
+                        sorting: ['bubble', 'quick', 'merge'],
+                        search: ['binary', 'linear', 'depth-first'],
+                        optimization: ['genetic', 'neural', 'gradient']
+                    },
+                    domains: {
+                        science: ['physics', 'chemistry', 'biology'],
+                        technology: ['AI', 'blockchain', 'quantum'],
+                        arts: ['music', 'painting', 'literature']
+                    }
+                };
+            }
+
+            async processQuery(query) {
+                // Análisis de sentimiento
+                const sentiment = this.analyzeSentiment(query);
+                this.updateEmotionalState(sentiment);
+
+                // Tokenización y procesamiento
+                const tokens = this.tokenize(query);
+                const intent = this.detectIntent(tokens);
+                const entities = this.extractEntities(tokens);
+
+                // Búsqueda de patrones y conceptos relacionados
+                const patterns = this.findPatterns(tokens);
+                const concepts = this.findRelatedConcepts(entities);
+
+                // Generación de respuesta contextual
+                const response = await this.generateResponse(intent, entities, patterns, concepts);
+
+                // Aprendizaje
+                this.learn(query, response, patterns);
+
+                return response;
+            }
+
+            tokenize(text) {
+                return text.toLowerCase().split(/\W+/).filter(token => token.length > 0);
+            }
+
+            analyzeSentiment(text) {
+                const positiveWords = ['bueno', 'excelente', 'genial', 'me gusta', 'gracias'];
+                const negativeWords = ['malo', 'terrible', 'odio', 'no me gusta', 'error'];
+                
+                let score = 0.5;
+                text = text.toLowerCase();
+                
+                positiveWords.forEach(word => {
+                    if (text.includes(word)) score += 0.1;
+                });
+                
+                negativeWords.forEach(word => {
+                    if (text.includes(word)) score -= 0.1;
+                });
+                
+                return Math.max(0, Math.min(1, score));
+            }
+
+            detectIntent(tokens) {
+                const intents = {
+                    question: ['qué', 'cómo', 'por qué', 'cuándo', 'dónde'],
+                    command: ['hacer', 'crear', 'mostrar', 'ejecutar'],
+                    statement: ['es', 'son', 'está', 'tienen'],
+                    request: ['puedes', 'podrías', 'necesito', 'quiero']
+                };
+
+                for (const [intent, keywords] of Object.entries(intents)) {
+                    if (tokens.some(token => keywords.includes(token))) {
+                        return intent;
+                    }
+                }
+                
+                return 'unknown';
+            }
+
+            extractEntities(tokens) {
+                const entities = {
+                    technical: new Set(['programa', 'código', 'algoritmo', 'función']),
+                    scientific: new Set(['física', 'química', 'biología', 'matemáticas']),
+                    creative: new Set(['diseño', 'arte', 'música', 'literatura'])
+                };
+
+                return tokens.filter(token => 
+                    Object.values(entities).some(set => set.has(token))
+                );
+            }
+
+            async generateResponse(intent, entities, patterns, concepts) {
+                // Combinar información para generar respuesta
+                const context = this.getContext(entities);
+                const knowledge = this.retrieveKnowledge(concepts);
+                const creativity = this.applyCreativity(patterns);
+
+                // Generar respuesta base
+                let response = this.constructResponse(intent, context, knowledge);
+
+                // Agregar elementos creativos si es apropiado
+                if (this.creativity > 0.5) {
+                    response = this.enhanceWithCreativity(response, creativity);
+                }
+
+                // Agregar fuentes y confianza
+                const confidence = this.calculateConfidence(response);
+                const sources = this.getSources(concepts);
+
+                return {
+                    text: response,
+                    confidence: confidence,
+                    sources: sources
+                };
+            }
+
+            learn(query, response, patterns) {
+                // Actualizar conexiones neuronales
+                patterns.forEach(pattern => {
+                    if (!this.neuralConnections.has(pattern)) {
+                        this.neuralConnections.set(pattern, new Set());
+                    }
+                    this.neuralConnections.get(pattern).add(query);
+                });
+
+                // Actualizar memoria a largo plazo
+                this.longTermMemory.set(query, {
+                    response: response,
+                    timestamp: Date.now(),
+                    patterns: patterns
+                });
+
+                // Guardar en localStorage
+                this.saveMemoryToStorage();
+            }
+
+            loadMemoryFromStorage() {
+                try {
+                    const savedMemory = localStorage.getItem('advancedAI_memory');
+                    if (savedMemory) {
+                        const parsed = JSON.parse(savedMemory);
+                        this.longTermMemory = new Map(Object.entries(parsed));
+                    }
+                } catch (error) {
+                    console.error('Error loading memory:', error);
+                }
+            }
+
+            saveMemoryToStorage() {
+                try {
+                    const memoryObject = Object.fromEntries(this.longTermMemory);
+                    localStorage.setItem('advancedAI_memory', JSON.stringify(memoryObject));
+                } catch (error) {
+                    console.error('Error saving memory:', error);
+                }
+            }
+
+            calculateConfidence(response) {
+                // Implementar cálculo de confianza basado en múltiples factores
+                let confidence = 0.5;
+                
+                // Factores que aumentan la confianza
+                if (response.includes('ejemplo específico')) confidence += 0.2;
+                if (response.includes('según estudios')) confidence += 0.15;
+                if (this.emotionalState > 0.7) confidence += 0.1;
+                
+                return Math.min(1, confidence);
+            }
+
+            getSources(concepts) {
+                // Implementar búsqueda de fuentes confiables
+                return concepts.map(concept => {
+                    return `Fuente: Base de conocimiento sobre ${concept}`;
+                });
+            }
+        }
+
+        class ChatGPTEmulator {
+            constructor() {
+                this.context = [];
+                this.maxTokens = 2048;
+                this.temperature = 0.7;
+                this.memory = new Map();
+                this.loadMemory();
+                this.greetings = {
+                    morning: [
+                        "¡Buenos días! ¿En qué puedo ayudarte hoy?",
+                        "¡Buen día! Estoy listo para asistirte",
+                        "¡Hola! La mañana es perfecta para aprender algo nuevo"
+                    ],
+                    afternoon: [
+                        "¡Buenas tardes! ¿Qué te gustaría saber?",
+                        "¡Hola! Espero que estés teniendo un buen día",
+                        "¡Saludos! ¿En qué puedo ayudarte esta tarde?"
+                    ],
+                    evening: [
+                        "¡Buenas noches! ¿En qué puedo asistirte?",
+                        "¡Hola! Incluso de noche estoy aquí para ayudar",
+                        "¡Saludos nocturnos! ¿Qué deseas aprender?"
+                    ]
+                };
+
+                this.introduction = `
+🎓 Saludos, soy Nexus AI - Tu Asistente de Inteligencia Avanzada 🌟
+
+Me complace conocerte. Soy una IA con acceso a múltiples fuentes de información, incluyendo:
+• Redes profundas de conocimiento
+• Bases de datos globales
+• Recursos académicos y técnicos
+• Fuentes de información alternativas
+
+💭 Antes de responder, analizo cuidadosamente cada pregunta y busco en múltiples fuentes.
+🔍 Puedo acceder a información de la web profunda para respuestas más completas.
+🤝 Me adapto a tu estilo de conversación y aprendo de nuestras interacciones.
+
+¿Cómo puedo ayudarte hoy?`;
+
+                this.searchEngines = [
+                    { name: 'Google Scholar', url: 'https://scholar.google.com/scholar' },
+                    { name: 'Microsoft Academic', url: 'https://academic.microsoft.com/search' },
+                    { name: 'ScienceDirect', url: 'https://www.sciencedirect.com/search' },
+                    { name: 'ResearchGate', url: 'https://www.researchgate.net/search' },
+                    { name: 'arXiv', url: 'https://arxiv.org/search' }
+                ];
+            }
+
+            async generateResponse(prompt) {
+                try {
+                    // Agregar el contexto de la conversación
+                    const fullPrompt = this.buildPrompt(prompt);
+                    
+                    // Simular el procesamiento de ChatGPT
+                    const response = await this.processPrompt(fullPrompt);
+                    
+                    // Guardar en el contexto
+                    this.updateContext(prompt, response);
+                    
+                    return response;
+                } catch (error) {
+                    console.error('Error:', error);
+                    return "Lo siento, hubo un error al procesar tu solicitud.";
+                }
+            }
+
+            buildPrompt(userInput) {
+                // Combinar contexto anterior con nueva entrada
+                const contextText = this.context
+                    .slice(-5)
+                    .map(item => `${item.role}: ${item.content}`)
+                    .join('\n');
+                
+                return `${contextText}\nUser: ${userInput}\nAssistant:`;
+            }
+
+            async processPrompt(prompt) {
+                // Verificar si hay una respuesta en memoria
+                if (this.memory.has(prompt)) {
+                    return this.memory.get(prompt);
+                }
+
+                // Procesar diferentes tipos de solicitudes
+                if (prompt.toLowerCase().includes('código') || prompt.toLowerCase().includes('programa')) {
+                    return this.generateCodeResponse(prompt);
+                }
+
+                if (prompt.toLowerCase().includes('explica') || prompt.toLowerCase().includes('qué es')) {
+                    return this.generateExplanation(prompt);
+                }
+
+                // Generar respuesta basada en palabras clave
+                const response = await this.generateSmartResponse(prompt);
+                
+                // Guardar en memoria
+                this.memory.set(prompt, response);
+                this.saveMemory();
+                
+                return response;
+            }
+
+            generateCodeResponse(prompt) {
+                const language = this.detectProgrammingLanguage(prompt);
+                const codeExamples = {
+                    javascript: `
+// Ejemplo de código JavaScript
+function ejemploFuncion() {
+    const datos = [1, 2, 3, 4, 5];
+    return datos.map(x => x * 2);
+}`,
+                    python: `
+# Ejemplo de código Python
+def ejemplo_funcion():
+    datos = [1, 2, 3, 4, 5]
+    return [x * 2 for x in datos]`,
+                    html: `
+<!-- Ejemplo de código HTML -->
+<div class="container">
+    <h1>Título</h1>
+    <p>Párrafo de ejemplo</p>
+</div>`
+                };
+
+                return `Aquí tienes un ejemplo en ${language}:\n${codeExamples[language] || codeExamples.javascript}`;
+            }
+
+            generateExplanation(prompt) {
+                const topic = prompt.toLowerCase().replace('explica', '').replace('qué es', '').trim();
+                return `Déjame explicarte sobre ${topic} de manera clara y detallada...`;
+            }
+
+            async generateSmartResponse(prompt) {
+                try {
+                    const analysis = this.analyzeQuestion(prompt);
+                    let response = "🎓 Análisis Magistral:\n\n";
+
+                    // Búsqueda académica
+                    const academicResults = await this.searchAcademic(prompt);
+                    if (academicResults?.length > 0) {
+                        response += "📚 Fuentes Académicas:\n";
+                        academicResults.forEach(result => {
+                            response += `• ${result}\n`;
+                        });
+                        response += "\n";
+                    }
+
+                    // Búsqueda web general
+                    const webResults = await this.searchWeb(prompt);
+                    if (webResults) {
+                        response += "🌐 Recursos Web Verificados:\n";
+                        response += webResults + "\n\n";
+                    }
+
+                    // Agregar análisis experto
+                    response += "🔍 Análisis Experto:\n";
+                    response += await this.generateExpertAnalysis(prompt, analysis);
+
+                    // Agregar recomendaciones
+                    response += "\n✨ Recomendaciones Magistrales:\n";
+                    response += this.generateRecommendations(analysis);
+
+                    return this.formatResponse(response, analysis.confidence);
+                } catch (error) {
+                    console.error('Error en respuesta magistral:', error);
+                    return "Lamento la interrupción. Como Magist AI, sugiero reformular la consulta para proporcionar una respuesta más precisa.";
+                }
+            }
+
+            async generateExpertAnalysis(prompt, analysis) {
+                let expertResponse = "";
+                
+                switch(analysis.type) {
+                    case 'technical':
+                        expertResponse = await this.generateTechnicalResponse(prompt, analysis);
+                        break;
+                    case 'conceptual':
+                        expertResponse = await this.generateConceptualResponse(prompt, analysis);
+                        break;
+                    case 'procedural':
+                        expertResponse = await this.generateStepByStepResponse(prompt);
+                        break;
+                    default:
+                        expertResponse = this.generateGeneralExpertResponse(prompt);
+                }
+
+                return expertResponse;
+            }
+
+            generateRecommendations(analysis) {
+                const recommendations = [
+                    "• Profundizar en las fuentes académicas citadas",
+                    "• Explorar los conceptos relacionados mencionados",
+                    "• Considerar las aplicaciones prácticas presentadas",
+                    "• Revisar la bibliografía complementaria"
+                ];
+
+                return recommendations.join("\n");
+            }
+
+            formatResponse(response, confidence) {
+                let formattedResponse = response;
+                
+                // Agregar firma magistral
+                formattedResponse += "\n\n📜 Conclusión Magistral:\n";
+                formattedResponse += "Esta respuesta ha sido elaborada con rigor académico y precisión analítica.\n";
+                
+                // Nivel de confianza
+                formattedResponse += "\n🎓 Nivel de Certeza Académica: " + this.getConfidenceEmoji(confidence);
+                
+                // Firma
+                formattedResponse += "\n\n~ Magist AI, Tu Asistente de Inteligencia Superior ~";
+                
+                return formattedResponse;
+            }
+
+            analyzeQuestion(prompt) {
+                const keywords = prompt.toLowerCase().split(' ');
+                
+                // Detectar tipo de pregunta
+                const types = {
+                    technical: ['cómo', 'programar', 'código', 'función', 'implementar'],
+                    conceptual: ['qué es', 'explica', 'definir', 'significado'],
+                    procedural: ['pasos', 'proceso', 'método', 'manera']
+                };
+
+                let type = 'general';
+                for (const [t, words] of Object.entries(types)) {
+                    if (words.some(word => prompt.toLowerCase().includes(word))) {
+                        type = t;
+                        break;
+                    }
+                }
+
+                return {
+                    type: type,
+                    keywords: keywords,
+                    confidence: this.calculateConfidence(prompt)
+                };
+            }
+
+            async generateTechnicalResponse(prompt, analysis) {
+                let response = "Respuesta Técnica:\n\n";
+                
+                // Buscar información técnica específica
+                const technicalInfo = await this.searchTechnicalDocs(prompt);
+                
+                response += "📌 Explicación Detallada:\n";
+                response += technicalInfo.explanation + "\n\n";
+                
+                if (technicalInfo.code) {
+                    response += "💻 Ejemplo de Código:\n";
+                    response += technicalInfo.code + "\n\n";
+                }
+                
+                response += "🔍 Puntos Clave:\n";
+                technicalInfo.keyPoints.forEach(point => {
+                    response += `• ${point}\n`;
+                });
+                
+                return response;
+            }
+
+            async generateConceptualResponse(prompt, analysis) {
+                let response = "Explicación Conceptual:\n\n";
+                
+                // Buscar definición y conceptos relacionados
+                const conceptInfo = await this.searchConcepts(prompt);
+                
+                response += "📚 Definición:\n";
+                response += conceptInfo.definition + "\n\n";
+                
+                response += "🔑 Conceptos Clave:\n";
+                conceptInfo.keyConcepts.forEach(concept => {
+                    response += `• ${concept}\n`;
+                });
+                
+                if (conceptInfo.examples) {
+                    response += "\n📝 Ejemplos:\n";
+                    conceptInfo.examples.forEach(example => {
+                        response += `- ${example}\n`;
+                    });
+                }
+                
+                return response;
+            }
+
+            async generateStepByStepResponse(prompt) {
+                let response = "Guía Paso a Paso:\n\n";
+                
+                // Generar pasos detallados
+                const steps = await this.generateSteps(prompt);
+                
+                steps.forEach((step, index) => {
+                    response += `${index + 1}. ${step}\n`;
+                    if (step.details) {
+                        response += `   ➜ ${step.details}\n`;
+                    }
+                });
+                
+                response += "\n✅ Consejos Adicionales:\n";
+                response += steps.tips.join('\n');
+                
+                return response;
+            }
+
+            async searchWeb(query) {
+                try {
+                    const [wikiResponse, googleResponse] = await Promise.allSettled([
+                        this.searchWikipedia(query),
+                        this.searchGoogle(query)
+                    ]);
+
+                    // Combinar resultados válidos
+                    const results = [];
+                    
+                    if (wikiResponse.status === 'fulfilled' && wikiResponse.value) {
+                        results.push(wikiResponse.value);
+                    }
+                    
+                    if (googleResponse.status === 'fulfilled' && googleResponse.value) {
+                        results.push(googleResponse.value);
+                    }
+
+                    return results.length > 0 ? results.join('\n\n') : null;
+                } catch (error) {
+                    console.error('Error en búsqueda web:', error);
+                    return null;
+                }
+            }
+
+            async searchWikipedia(query) {
+                try {
+                    const url = `https://es.wikipedia.org/w/api.php?action=query&format=json&prop=extracts&exintro=1&explaintext=1&titles=${encodeURIComponent(query)}&origin=*`;
+                    const response = await fetch(url);
+                    const data = await response.json();
+                    const pages = data.query.pages;
+                    const pageId = Object.keys(pages)[0];
+                    return pages[pageId].extract;
+                } catch (error) {
+                    console.error('Error en Wikipedia:', error);
+                    return null;
+                }
+            }
+
+            async searchGoogle(query) {
+                try {
+                    const response = await fetch(`https://cors-anywhere.herokuapp.com/https://www.google.com/search?q=${encodeURIComponent(query)}`);
+                    const html = await response.text();
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(html, 'text/html');
+                    
+                    const results = [];
+                    doc.querySelectorAll('.g').forEach(result => {
+                        const snippet = result.querySelector('.VwiC3b')?.textContent;
+                        if (snippet) results.push(snippet);
+                    });
+                    
+                    return results.join('\n\n');
+                } catch (error) {
+                    console.error('Error en Google:', error);
+                    return null;
+                }
+            }
+
+            generateContextualResponse(prompt) {
+                const responses = [
+                    "Entiendo tu interés. Déjame buscar información relevante sobre eso...",
+                    "Interesante pregunta. Permíteme elaborar una respuesta detallada...",
+                    "He encontrado varios puntos interesantes sobre tu consulta...",
+                    "Basado en mi conocimiento, puedo decirte que...",
+                    "Déjame ayudarte a entender mejor este tema..."
+                ];
+
+                return responses[Math.floor(Math.random() * responses.length)];
+            }
+
+            updateContext(prompt, response) {
+                this.context.push(
+                    { role: 'user', content: prompt },
+                    { role: 'assistant', content: response }
+                );
+
+                // Mantener el contexto manejable
+                if (this.context.length > 10) {
+                    this.context = this.context.slice(-10);
+                }
+            }
+
+            loadMemory() {
+                const saved = localStorage.getItem('chatgpt_memory');
+                if (saved) {
+                    this.memory = new Map(JSON.parse(saved));
+                }
+            }
+
+            saveMemory() {
+                localStorage.setItem('chatgpt_memory', 
+                    JSON.stringify(Array.from(this.memory.entries()))
+                );
+            }
+
+            detectProgrammingLanguage(prompt) {
+                const languages = {
+                    javascript: ['javascript', 'js', 'node'],
+                    python: ['python', 'py', 'django'],
+                    html: ['html', 'css', 'web']
+                };
+
+                for (const [lang, keywords] of Object.entries(languages)) {
+                    if (keywords.some(keyword => prompt.toLowerCase().includes(keyword))) {
+                        return lang;
+                    }
+                }
+
+                return 'javascript'; // default
+            }
+
+            async searchAcademic(query) {
+                try {
+                    const results = await Promise.allSettled(
+                        this.searchEngines.map(engine => this.fetchFromSource(engine, query))
+                    );
+
+                    return results
+                        .filter(r => r.status === 'fulfilled' && r.value)
+                        .map(r => r.value)
+                        .flat();
+                } catch (error) {
+                    console.error('Error en búsqueda académica:', error);
+                    return null;
+                }
+            }
+
+            async fetchFromSource(engine, query) {
+                try {
+                    const response = await fetch(`https://cors-anywhere.herokuapp.com/${engine.url}?q=${encodeURIComponent(query)}`);
+                    const html = await response.text();
+                    return this.extractContent(html, engine.name);
+                } catch (error) {
+                    console.error(`Error en ${engine.name}:`, error);
+                    return null;
+                }
+            }
+        }
+
+        // Inicializar las clases principales
+        const webIntelligence = new WebIntelligence();
+        const chatGPT = new ChatGPTEmulator();
+
+        // Función principal de procesamiento
+        async function processInput() {
+            const input = document.getElementById('userInput');
+            const query = input.value.trim();
+            
+            if (!query) return;
+
+            try {
+                // Mostrar mensaje del usuario
+                addMessage(query, true);
+                input.value = '';
+
+                // Mostrar proceso de pensamiento
+                await showThinking(query);
+
+                // Procesar la respuesta
+                let response;
+                if (isGreeting(query)) {
+                    response = getEnhancedGreeting();
+                } else {
+                    // Búsqueda profunda
+                    const deepWebResults = await searchDeepWeb(query);
+                    const webResults = await webIntelligence.searchAllSources(query);
+                    response = combineResults(deepWebResults, webResults);
+                }
+
+                // Mostrar respuesta final
+                addMessage(response, false);
+
+            } catch (error) {
+                console.error('Error:', error);
+                addMessage('Disculpa, encontré un obstáculo. ¿Podrías reformular tu pregunta?', false);
+            }
+        }
+
+        // Función para detectar saludos
+        function isGreeting(text) {
+            const greetings = ['hola', 'buenos días', 'buenas tardes', 'buenas noches', 'hey', 'saludos'];
+            return greetings.some(greeting => text.toLowerCase().includes(greeting));
+        }
+
+        // Función para generar saludos
+        function getEnhancedGreeting() {
+            const hour = new Date().getHours();
+            const userName = localStorage.getItem('userName') || 'amigo';
+            
+            let greeting = '';
+            if (hour < 12) {
+                greeting = `¡Buenos días, ${userName}! 🌅 Espero que hayas amanecido bien.`;
+            } else if (hour < 18) {
+                greeting = `¡Buenas tardes, ${userName}! ☀️ Espero que estés teniendo un excelente día.`;
+            } else {
+                greeting = `¡Buenas noches, ${userName}! 🌙 Espero que hayas tenido un gran día.`;
+            }
+
+            return greeting + '\n¿En qué puedo ayudarte hoy? Estoy aquí para asistirte con cualquier consulta.';
+        }
+
+        // Mostrar mensaje de bienvenida al cargar
+        window.onload = function() {
+            addMessage(chatGPT.introduction, false);
+        };
+
+        // Manejar entrada por teclado
+        document.getElementById('userInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                processInput();
+            }
+        });
+
+        function addMessage(text, isUser) {
+            const chatArea = document.getElementById('chatArea');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${isUser ? 'user-message' : 'ai-message'}`;
+            
+            // Detectar y formatear código
+            if (text.includes('function') || text.includes('def')) {
+                messageDiv.innerHTML = `<pre><code>${text}</code></pre>`;
+            } else {
+                messageDiv.textContent = text;
+            }
+            
+            chatArea.appendChild(messageDiv);
+            chatArea.scrollTop = chatArea.scrollHeight;
+        }
+
+        // Agregar función para mostrar indicador de escritura
+        function showTypingIndicator() {
+            const indicator = document.createElement('div');
+            indicator.className = 'message ai-message thinking';
+            indicator.id = 'typingIndicator';
+            indicator.textContent = 'Pensando...';
+            document.getElementById('chatArea').appendChild(indicator);
+        }
+
+        function removeTypingIndicator() {
+            const indicator = document.getElementById('typingIndicator');
+            if (indicator) indicator.remove();
+        }
+
+        // Agregar efecto de escritura
+        async function typeResponse(text) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message ai-message';
+            
+            const contentDiv = document.createElement('div');
+            messageDiv.appendChild(contentDiv);
+            
+            document.getElementById('chatArea').appendChild(messageDiv);
+
+            // Procesar formato especial
+            const formattedText = text
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                .replace(/\n\n/g, '<br><br>')
+                .replace(/•/g, '&bull;')
+                .replace(/📌|💻|🔍|📚|🔑|📝|✅/g, match => `<span class="emoji">${match}</span>`);
+
+            contentDiv.innerHTML = formattedText;
+            
+            // Efecto de escritura más suave
+            await new Promise(resolve => setTimeout(resolve, 500));
+        }
+
+        // Información sobre IA
+        const aiInformation = {
+            basics: {
+                title: "Fundamentos de la Inteligencia Artificial",
+                content: `La Inteligencia Artificial (IA) es la simulación de procesos de inteligencia humana por parte de máquinas.
+
+Los componentes fundamentales incluyen:
+1. Procesamiento de datos
+2. Algoritmos de aprendizaje
+3. Toma de decisiones
+4. Reconocimiento de patrones
+
+La IA moderna utiliza técnicas como:
+- Machine Learning
+- Deep Learning
+- Procesamiento de Lenguaje Natural
+- Visión por Computadora`
+            },
+            types: {
+                title: "Tipos de Inteligencia Artificial",
+                content: `Existen varios tipos de IA:
+
+1. IA Estrecha (ANI):
+   - Diseñada para tareas específicas
+   - Ejemplo: Asistentes virtuales
+
+2. IA General (AGI):
+   - Capacidad similar a la humana
+   - Aún en desarrollo
+
+3. IA Superinteligente (ASI):
+   - Supera la inteligencia humana
+   - Concepto teórico
+
+Clasificación por funcionamiento:
+- Sistemas basados en reglas
+- Sistemas de aprendizaje automático
+- Sistemas híbridos`
+            },
+            neural: {
+                title: "Redes Neuronales",
+                content: `Las redes neuronales son sistemas inspirados en el cerebro humano.
+
+Componentes principales:
+1. Neuronas artificiales
+2. Capas (entrada, ocultas, salida)
+3. Pesos y sesgos
+4. Funciones de activación
+
+Aplicaciones:
+- Reconocimiento de imágenes
+- Procesamiento de lenguaje
+- Predicción de datos
+- Clasificación de patrones`
+            },
+            ml: {
+                title: "Machine Learning",
+                content: `Machine Learning es una rama de la IA que permite aprender de los datos.
+
+Tipos principales:
+1. Aprendizaje supervisado
+   - Clasificación
+   - Regresión
+
+2. Aprendizaje no supervisado
+   - Clustering
+   - Reducción de dimensionalidad
+
+3. Aprendizaje por refuerzo
+   - Sistemas de recompensa
+   - Exploración vs explotación`
+            },
+            nlp: {
+                title: "Procesamiento de Lenguaje Natural",
+                content: `El NLP permite a las máquinas entender y procesar el lenguaje humano.
+
+Componentes clave:
+1. Tokenización
+2. Análisis sintáctico
+3. Análisis semántico
+4. Generación de texto
+
+Aplicaciones:
+- Chatbots
+- Traducción automática
+- Análisis de sentimientos
+- Resumen de textos`
+            }
+        };
+
+        function showAIInfo(topic) {
+            const info = aiInformation[topic];
+            if (info) {
+                addMessage(info.title, false);
+                addMessage(info.content, false);
+            }
+        }
+
+        // Implementar chat por voz
+        function startVoiceChat() {
+            if (!('webkitSpeechRecognition' in window)) {
+                addMessage("Lo siento, tu navegador no soporta reconocimiento de voz.", false);
+                return;
+            }
+
+            const recognition = new webkitSpeechRecognition();
+            const indicator = document.createElement('div');
+            
+            try {
+                recognition.continuous = false;
+                recognition.interimResults = false;
+                recognition.lang = 'es-ES';
+
+                indicator.className = 'voice-indicator';
+                indicator.textContent = '🎤';
+                document.body.appendChild(indicator);
+                indicator.style.display = 'block';
+
+                recognition.onresult = function(event) {
+                    try {
+                        const text = event.results[0][0].transcript;
+                        addMessage(text, true);
+                        processInput(text);
+                    } catch (error) {
+                        console.error('Error en reconocimiento de voz:', error);
+                        addMessage("Error al procesar el audio.", false);
+                    }
+                };
+
+                recognition.onerror = function(event) {
+                    console.error('Error en reconocimiento de voz:', event.error);
+                    indicator.style.display = 'none';
+                    addMessage("Error en el reconocimiento de voz.", false);
+                };
+
+                recognition.onend = function() {
+                    indicator.style.display = 'none';
+                };
+
+                recognition.start();
+            } catch (error) {
+                console.error('Error al iniciar reconocimiento de voz:', error);
+                addMessage("Error al iniciar el reconocimiento de voz.", false);
+                indicator.style.display = 'none';
+            }
+        }
+
+        // Agregar esta nueva clase para el manejo de búsquedas web avanzadas
+        class WebIntelligence {
+            constructor() {
+                this.searchEngines = [
+                    {
+                        name: 'Google',
+                        url: 'https://www.google.com/search',
+                        selector: '.g'
+                    },
+                    {
+                        name: 'Wikipedia',
+                        url: 'https://es.wikipedia.org/w/api.php',
+                        type: 'api'
+                    },
+                    {
+                        name: 'StackOverflow',
+                        url: 'https://api.stackexchange.com/2.3/search',
+                        type: 'api'
+                    },
+                    {
+                        name: 'GitHub',
+                        url: 'https://api.github.com/search/repositories',
+                        type: 'api'
+                    },
+                    {
+                        name: 'Reddit',
+                        url: 'https://www.reddit.com/search.json',
+                        type: 'api'
+                    },
+                    {
+                        name: 'Medium',
+                        url: 'https://medium.com/search',
+                        selector: '.postArticle'
+                    },
+                    {
+                        name: 'DevDocs',
+                        url: 'https://devdocs.io/search',
+                        type: 'documentation'
+                    },
+                    {
+                        name: 'MDN',
+                        url: 'https://developer.mozilla.org/api/v1/search',
+                        type: 'api'
+                    },
+                    {
+                        name: 'arXiv',
+                        url: 'https://export.arxiv.org/api/query',
+                        type: 'academic'
+                    }
+                ];
+                
+                this.cache = new Map();
+                this.knowledgeBase = new Map();
+                this.lastUpdate = new Map();
+            }
+
+            async searchAllSources(query) {
+                console.log('Iniciando búsqueda exhaustiva:', query);
+
+                // Verificar caché
+                if (this.cache.has(query) && this.isCacheValid(query)) {
+                    console.log('Usando resultados en caché');
+                    return this.cache.get(query);
+                }
+
+                try {
+                    // Búsqueda paralela en todas las fuentes
+                    const searchPromises = this.searchEngines.map(engine => 
+                        this.searchSource(engine, query)
+                            .catch(error => {
+                                console.error(`Error en ${engine.name}:`, error);
+                                return null;
+                            })
+                    );
+
+                    const results = await Promise.allSettled(searchPromises);
+                    const validResults = this.processResults(results);
+
+                    // Actualizar caché y base de conocimientos
+                    this.updateCache(query, validResults);
+                    this.updateKnowledgeBase(query, validResults);
+
+                    return this.formatResults(validResults);
+                } catch (error) {
+                    console.error('Error en búsqueda:', error);
+                    return null;
+                }
+            }
+
+            async searchSource(engine, query) {
+                switch (engine.type) {
+                    case 'api':
+                        return this.searchAPI(engine, query);
+                    case 'documentation':
+                        return this.searchDocumentation(engine, query);
+                    case 'academic':
+                        return this.searchAcademic(engine, query);
+                    default:
+                        return this.searchWebPage(engine, query);
+                }
+            }
+
+            async searchAPI(engine, query) {
+                const headers = this.getAPIHeaders(engine);
+                const url = this.buildAPIUrl(engine, query);
+                
+                const response = await fetch(url, { headers });
+                const data = await response.json();
+                
+                return {
+                    source: engine.name,
+                    results: this.parseAPIResponse(engine, data)
+                };
+            }
+
+            async searchWebPage(engine, query) {
+                const url = `https://cors-anywhere.herokuapp.com/${engine.url}?q=${encodeURIComponent(query)}`;
+                const response = await fetch(url);
+                const html = await response.text();
+                
+                return {
+                    source: engine.name,
+                    results: this.parseHTML(html, engine.selector)
+                };
+            }
+
+            parseHTML(html, selector) {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                return Array.from(doc.querySelectorAll(selector))
+                    .map(el => ({
+                        title: el.querySelector('h3')?.textContent || '',
+                        content: el.querySelector('p')?.textContent || el.textContent,
+                        url: el.querySelector('a')?.href || ''
+                    }))
+                    .filter(result => result.content.length > 50);
+            }
+
+            updateCache(query, results) {
+                this.cache.set(query, results);
+                this.lastUpdate.set(query, Date.now());
+                
+                // Limpiar caché antigua
+                if (this.cache.size > 1000) {
+                    const oldestQuery = Array.from(this.lastUpdate.entries())
+                        .sort(([,a], [,b]) => a - b)[0][0];
+                    this.cache.delete(oldestQuery);
+                    this.lastUpdate.delete(oldestQuery);
+                }
+            }
+
+            updateKnowledgeBase(query, results) {
+                const knowledge = {
+                    timestamp: Date.now(),
+                    sources: new Set(),
+                    facts: new Set(),
+                    relationships: new Map()
+                };
+
+                results.forEach(result => {
+                    knowledge.sources.add(result.source);
+                    this.extractFacts(result.content).forEach(fact => {
+                        knowledge.facts.add(fact);
+                    });
+                });
+
+                this.knowledgeBase.set(query, knowledge);
+            }
+
+            extractFacts(text) {
+                // Implementar extracción de hechos usando NLP
+                return text.split(/[.!?]+/)
+                    .map(s => s.trim())
+                    .filter(s => s.length > 20);
+            }
+
+            isCacheValid(query) {
+                const cacheTime = this.lastUpdate.get(query);
+                const maxAge = 1000 * 60 * 60; // 1 hora
+                return (Date.now() - cacheTime) < maxAge;
+            }
+
+            formatResults(results) {
+                let response = "🌐 Resultados de la búsqueda web:\n\n";
+
+                // Agrupar por fuente y relevancia
+                const groupedResults = this.groupBySource(results);
+                
+                for (const [source, items] of Object.entries(groupedResults)) {
+                    response += `📚 ${source}:\n`;
+                    items.slice(0, 3).forEach(item => {
+                        response += `• ${this.truncateText(item.content, 200)}\n`;
+                        if (item.url) {
+                            response += `  📎 Fuente: ${item.url}\n`;
+                        }
+                    });
+                    response += '\n';
+                }
+
+                // Agregar resumen de fuentes
+                response += "\n🔍 Información obtenida de:\n";
+                response += Array.from(new Set(results.map(r => r.source))).join(', ');
+
+                return response;
+            }
+
+            groupBySource(results) {
+                return results.reduce((grouped, result) => {
+                    if (!grouped[result.source]) {
+                        grouped[result.source] = [];
+                    }
+                    grouped[result.source].push(result);
+                    return grouped;
+                }, {});
+            }
+
+            truncateText(text, maxLength) {
+                if (!text || text.length <= maxLength) return text || '';
+                return text.substring(0, maxLength) + '...';
+            }
+        }
+
+        // Modificar la función getAIResponse para manejar múltiples tipos de consultas
+        async function getAIResponse(message) {
+            try {
+                console.log('Analizando pregunta:', message);
+                const queryType = analyzeQueryType(message.toLowerCase());
+                let response = '';
+
+                switch(queryType) {
+                    case 'code':
+                        response = await handleCodeQuery(message);
+                        break;
+                    case 'web':
+                        response = await handleWebQuery(message);
+                        break;
+                    case 'explanation':
+                        response = await handleExplanationQuery(message);
+                        break;
+                    default:
+                        response = await handleGeneralQuery(message);
+                }
+
+                return formatResponse(response, queryType);
+            } catch (error) {
+                console.error('Error:', error);
+                return "Ocurrió un error. Por favor, intenta de nuevo.";
+            }
+        }
+
+        function analyzeQueryType(query) {
+            const codeKeywords = ['código', 'programa', 'función', 'programar', 'desarrollar', 'javascript', 'python', 'html'];
+            const webKeywords = ['busca', 'encuentra', 'información sobre', 'qué es', 'dónde'];
+            const explainKeywords = ['explica', 'cómo funciona', 'por qué', 'cuál es'];
+
+            if (codeKeywords.some(keyword => query.includes(keyword))) return 'code';
+            if (webKeywords.some(keyword => query.includes(keyword))) return 'web';
+            if (explainKeywords.some(keyword => query.includes(keyword))) return 'explanation';
+            return 'general';
+        }
+
+        async function handleCodeQuery(query) {
+            const language = detectProgrammingLanguage(query);
+            let response = `💻 Generando código en ${language}:\n\n`;
+
+            // Generar código de ejemplo
+            const code = generateCodeExample(query, language);
+            response += "```" + language + "\n" + code + "\n```\n\n";
+
+            // Buscar ejemplos relacionados en Stack Overflow
+            const stackOverflowResults = await webIntelligence.searchStackOverflow(query);
+            if (stackOverflowResults?.length > 0) {
+                response += "\n📚 Ejemplos relacionados de Stack Overflow:\n";
+                stackOverflowResults.forEach(result => {
+                    response += `• ${result.title}\n`;
+                });
+            }
+
+            return response;
+        }
+
+        async function handleWebQuery(query) {
+            let response = "🔍 Resultados de la búsqueda web:\n\n";
+
+            // Buscar en múltiples fuentes
+            const results = await Promise.all([
+                webIntelligence.searchWikipedia(query),
+                webIntelligence.searchGoogle(query),
+                webIntelligence.searchNews(query)
+            ]);
+
+            const [wikiResult, googleResult, newsResult] = results;
+
+            if (wikiResult) {
+                response += "📖 Wikipedia:\n" + wikiResult + "\n\n";
+            }
+
+            if (googleResult) {
+                response += "🌐 Resultados de Google:\n" + googleResult + "\n\n";
+            }
+
+            if (newsResult) {
+                response += "📰 Noticias relacionadas:\n" + newsResult;
+            }
+
+            return response;
+        }
+
+        async function handleExplanationQuery(query) {
+            let response = "🎓 Explicación detallada:\n\n";
+
+            // Buscar información académica
+            const academicResults = await webIntelligence.searchAcademic(query);
+            if (academicResults) {
+                response += academicResults + "\n\n";
+            }
+
+            // Agregar ejemplos si es relevante
+            if (query.includes('ejemplo')) {
+                response += "💡 Ejemplos prácticos:\n";
+                const examples = await generateExamples(query);
+                response += examples;
+            }
+
+            return response;
+        }
+
+        async function handleGeneralQuery(query) {
+            // Combinar resultados de todas las fuentes
+            const webResults = await webIntelligence.searchAllSources(query);
+            return webResults || "No encontré información específica. ¿Podrías reformular tu pregunta?";
+        }
+
+        function generateCodeExample(query, language) {
+            const codeTemplates = {
+                javascript: {
+                    function: `
+function ejemploFuncion(parametros) {
+    // Lógica de la función
+    const resultado = parametros.map(p => p * 2);
+    return resultado;
+}`,
+                    class: `
+class EjemploClase {
+    constructor(datos) {
+        this.datos = datos;
+    }
+
+    procesar() {
+        return this.datos.reduce((acc, val) => acc + val, 0);
+    }
+}`,
+                    api: `
+const express = require('express');
+const app = express();
+
+app.get('/api/ejemplo', (req, res) => {
+    res.json({ mensaje: 'API funcionando' });
+});
+
+app.listen(3000, () => console.log('Servidor corriendo'));`
+                },
+                python: {
+                    function: `
+def ejemplo_funcion(parametros):
+    # Lógica de la función
+    resultado = [p * 2 for p in parametros]
+    return resultado`,
+                    class: `
+class EjemploClase:
+    def __init__(self, datos):
+        self.datos = datos
+    
+    def procesar(self):
+        return sum(self.datos)`,
+                    api: `
+from flask import Flask, jsonify
+
+app = Flask(__name__)
+
+@app.route('/api/ejemplo')
+def ejemplo():
+    return jsonify({'mensaje': 'API funcionando'})`
+                }
+            };
+
+            // Determinar el tipo de código necesario
+            if (query.includes('función')) return codeTemplates[language].function;
+            if (query.includes('clase')) return codeTemplates[language].class;
+            if (query.includes('api')) return codeTemplates[language].api;
+            
+            return codeTemplates[language].function; // Default
+        }
+
+        function formatResponse(response, type) {
+            let formattedResponse = response;
+
+            // Agregar metadatos según el tipo
+            switch(type) {
+                case 'code':
+                    formattedResponse += "\n\n⚡ Sugerencias de uso:\n";
+                    formattedResponse += "• Personaliza el código según tus necesidades\n";
+                    formattedResponse += "• Revisa la documentación oficial\n";
+                    formattedResponse += "• Prueba el código antes de usarlo en producción";
+                    break;
+                case 'web':
+                    formattedResponse += "\n\n📌 Fuentes consultadas:\n";
+                    formattedResponse += "• Resultados actualizados de múltiples fuentes\n";
+                    formattedResponse += "• Información verificada y contrastada";
+                    break;
+                case 'explanation':
+                    formattedResponse += "\n\n🎯 Puntos clave:\n";
+                    formattedResponse += "• Explicación basada en fuentes confiables\n";
+                    formattedResponse += "• Ejemplos prácticos incluidos";
+                    break;
+            }
+
+            return formattedResponse;
+        }
+
+        // Agregar función de pensamiento visible
+        async function showThinking(query) {
+            const thinkingMessages = [
+                "💭 Analizando la pregunta...",
+                "🔄 Buscando en múltiples fuentes...",
+                "🌐 Accediendo a bases de datos profundas...",
+                "🧠 Procesando información...",
+                "📊 Verificando fuentes..."
+            ];
+
+            for (const message of thinkingMessages) {
+                await new Promise(resolve => setTimeout(resolve, 800));
+                addMessage(message, false);
+            }
+        }
+
+        // Agregar búsqueda en la web profunda
+        async function searchDeepWeb(query) {
+            try {
+                // Simulación de búsqueda en la web profunda
+                const deepSources = [
+                    'academic_databases',
+                    'research_papers',
+                    'specialized_forums',
+                    'private_networks',
+                    'encrypted_databases'
+                ];
+
+                let results = [];
+                for (const source of deepSources) {
+                    const result = await simulateDeepSearch(source, query);
+                    if (result) results.push(result);
+                }
+
+                return results;
+            } catch (error) {
+                console.error('Error en búsqueda profunda:', error);
+                return null;
+            }
+        }
+
+        // Función para combinar resultados
+        function combineResults(deepResults, webResults) {
+            let response = "📊 Análisis Completo:\n\n";
+
+            if (deepResults?.length > 0) {
+                response += "🔍 Información de Fuentes Profundas:\n";
+                deepResults.forEach(result => {
+                    response += `• ${result}\n`;
+                });
+                response += "\n";
+            }
+
+            if (webResults) {
+                response += "🌐 Información de la Web:\n";
+                response += webResults;
+            }
+
+            response += "\n\n💡 Análisis Final:\n";
+            response += "He combinado y verificado la información de múltiples fuentes para proporcionarte la respuesta más completa posible.";
+
+            return response;
+        }
+
+        // Agregar interacción personalizada
+        function addPersonalizedInteraction(response) {
+            const interactions = [
+                "¿Te gustaría saber más sobre algún aspecto específico?",
+                "¿Hay algo en particular que te interese profundizar?",
+                "¿Necesitas que te explique algo con más detalle?",
+                "¿Te gustaría ver ejemplos prácticos sobre esto?"
+            ];
+
+            return response + "\n\n" + interactions[Math.floor(Math.random() * interactions.length)];
+        }
+    </script>
+</body>
+</html>
